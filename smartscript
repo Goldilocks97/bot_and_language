@@ -1,0 +1,122 @@
+$turn := $turn + 1;
+
+if ($turn = 1) {
+    $crit_prod_lturn := 0;
+    $ctir_raw_lturn := 0;
+    $crit_prod_price := 0;
+    $crit_raw_price := 0;
+    $avg_prod := 0;
+    $avg_prod_cnt := 0;
+    $avg_raw := 0;
+    $avg_raw_cnt := 0;
+}
+
+$poten_money := ?money(?my_id());
+
+$num := ?min(?raw(?my_id()), ?factories(?my_id()));
+?prod($num);
+$potenmoney := $poten_money - 2000 * $num;
+
+$actives := ?active_players();
+$curpl := 1;
+$prodplay := 0;
+while (!($curpl > $actives)) {
+    $prodplay := $prodplay + ?production($curpl);
+    $curpl := $curpl + 1;
+}
+
+if ($crit_prod_lturn) {
+    $curpl := 1;
+    while (!($curpl > $actives)){
+        if (?result_prod_amount($curpl)) {
+            $tmp := $crit_prod_price - ?result_prod_price($curpl);
+            if ($tmp) {
+                $percent := ?perc_by_number($crit_prod_price, $tmp);
+                $avg_prod := $avg_prod + $percent;
+                $avg_prod_cnt := $avg_prod_cnt + 1;
+            }
+        }
+        $curpl := $curpl + 1;
+    }
+}
+
+$demand := ?demand();
+
+if (!($prodplay > $demand)) {
+    ?sell(?production(?my_id()), ?production_price());
+    $crit_prod_lturn := 0;
+}
+if ($prodplay > $demand) {
+    $crit_prod_lturn := 1;
+    $crit_prod_price := ?production_price();
+    if ($avg_prod_cnt = 0) {
+        $perc_for_turn := ?random(?my_id(), 20);
+    }
+    if (!($avg_prod_cnt = 0)) {
+        $perc_for_turn := $avg_prod / $avg_prod_cnt;
+    }
+    $less := ?num_by_percent(?production_price(), $perc_for_turn);
+    ?sell(?production(?my_id()), ?production_price() - $less);
+}
+
+$curpl := 1;
+$rawplay := 0;
+while (!($curpl > $actives)) {
+    $rawplay := $rawplay + ?factories($curpl);
+    $curpl := $curpl + 1;
+}
+$raw := ?supply();
+
+if ($crit_raw_lturn) {
+    $curpl := 1;
+    while (!($curpl > $actives)) {
+        if (?result_raw_amount($curpl)) {
+            $tmp := $crit_raw_price - ?result_raw_price($curpl);
+            if ($tmp) {
+                $percent := ?perc_by_number($crit_raw_price, $tmp);
+                $avg_raw := $avg_raw + $percent;
+                $avg_raw_cnt := $avg_raw_cnt + 1;
+            }
+        }
+        $curpl := $curpl + 1;
+    }
+}
+
+if (!($rawplay > $raw)) {
+    ?buy(?factories(?my_id()), ?raw_price());
+    $crit_raw_lturn := 0;
+}
+if ($rawplay > $raw) {
+    $crit_raw_lturn := 1;
+    $crit_raw_price := ?raw_price();
+    if ($avg_raw_cnt = 0) {
+        $perc_for_turn := ?random(?my_id(), 20);
+    }
+    if (!($avg_raw_cnt = 0)) {
+        $perc_for_turn := $avg_raw / $avg_raw_cnt;
+    }
+    $less := ?num_by_percent(?raw_price(), $perc_for_turn);
+    $my_fact := ?factories(?my_id());
+    while ($my_fact > ?supply()) {
+        $my_fact := $my_fact - 1;
+    }
+    $try := $my_fact * (?raw_price() + $less);
+    while ($try > $poten_money) {
+        $my_fact := $my_fact - 1;
+        $try := $my_fact * (?raw_price() + $less);
+    }
+    $poten_money := $poten_money - $try;
+    ?buy($my_fact, (?raw_price() + $less));
+}
+
+$curpl := 1;
+$check := 0;
+while (!($curpl > $actives)) {
+    if (?money(?my_id()) < ?money($curpl)) {
+        $check := 1;
+    }
+    $curpl := $curpl + 1;
+}
+
+$turn := $turn + 1;
+?endturn();

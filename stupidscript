@@ -1,0 +1,5 @@
+print "TRIPLE_TURN", ?triple(?turn());
+?prod(2);
+?sell(?production(?my_id()), ?production_price());
+?buy(2, ?raw_price());
+?endturn();
